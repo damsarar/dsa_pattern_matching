@@ -30,6 +30,5 @@ public class DSA_Pattern_matching_with_wildcards {
 	if(matched == 0){
             System.out.println("Pattern not found");
 	}
-    }
-    
+    }    
 }
