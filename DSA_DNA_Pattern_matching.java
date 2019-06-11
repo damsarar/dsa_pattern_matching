@@ -1,64 +1,59 @@
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 public class DSA_DNA_Pattern_matching {
-    static List<String> datalines = new ArrayList<>();
-    static List<String> querylines = new ArrayList<>();
-    static Map<String, String> data = new HashMap<>();
-    static Map<String, String> queries = new HashMap<>();
-    public final static int d = 256;     
-    static String tempkey;
-    static int foundAt;
-    static int status;
+    static List<String> datalines = new ArrayList<>();             // list to store read lines of DNA database
+    static List<String> querylines = new ArrayList<>();            // list to store read lines of query base
+    static Map<String, String> data = new LinkedHashMap<>();       // map to store DNA database (description, string) pairs
+    static Map<String, String> queries = new LinkedHashMap<>();    // map to store query base (description, string) pairs
+    public final static int nalph = 4;                             // no of characters in the alphabet
+    static String tempkey;                                         // variable to store the description temporary
+    static int foundAt;                                            // variable to store the value returned by the matching algorithm
+    static int status;                                             // variable to store the matched status temporary
+    static int primeno = 101;                                      // variable to store the prime number
     
     public static void main(String[] args) {
-        try {
-            datalines = Files.readAllLines(Paths.get("C:\\Users\\Damsara\\Desktop\\UCSC Downloads\\Second Year\\Semester 1\\SCS 2201 - DSA 3\\Assignment 1\\DSA_Pattern_matching_assignment\\DNA Database.txt"));
-            querylines = Files.readAllLines(Paths.get("C:\\Users\\Damsara\\Desktop\\UCSC Downloads\\Second Year\\Semester 1\\SCS 2201 - DSA 3\\Assignment 1\\DSA_Pattern_matching_assignment\\Querybase.txt"));
+        try {            
+            // reading the DNA database and the query base
+            datalines = Files.readAllLines(Paths.get("DNA Database.txt"));
+            querylines = Files.readAllLines(Paths.get("Querybase.txt"));
         } catch (IOException ex) {
             Logger.getLogger(DSA_DNA_Pattern_matching.class.getName()).log(Level.SEVERE, null, ex);
         }       
         
+        // looping through the list of read lines of DNA database
         for(int i = 0; i < datalines.size(); i++) {
-            if(datalines.get(i).contains(">")){
-                tempkey = datalines.get(i).replace(">", "");
-                data.put(tempkey, "");
+            if(datalines.get(i).contains(">")){                   // checking if the current line has '>' as a string
+                tempkey = datalines.get(i).replace(">", "");      // remove the '>' in the line
+                data.put(tempkey, "");                            // adding the description as a key in the map
                 
             }else{
-                data.put(tempkey, data.get(tempkey)+datalines.get(i));
+                data.put(tempkey, data.get(tempkey)+datalines.get(i));   // adding values to the particular keys
             }
            
         }        
         
+        // looping through the list of read lines of query base
         for(int i = 0; i < querylines.size(); i++) {
-            if(querylines.get(i).contains(">")){
-                tempkey = querylines.get(i).replace(">", "");
-                queries.put(tempkey, "");
+            if(querylines.get(i).contains(">")){                  // checking if the current line has '>' as a string
+                tempkey = querylines.get(i).replace(">", "");     // remove the '>' in the line
+                queries.put(tempkey, "");                         // adding the description as a key in the map
                 
             }else{
-                queries.put(tempkey, queries.get(tempkey)+querylines.get(i));
+                queries.put(tempkey, queries.get(tempkey)+querylines.get(i));   // adding values to the particular keys
             }
            
         }
         
+        // removing the EOF keys from the 2 maps
         queries.remove("EOF");
         data.remove("EOF");
         
-//        System.out.println(" "+ data);
-//        System.out.println(" "+ queries);//        
-       
+        // looping through the queries map
         queries.forEach((pdescription, pattern) -> {
             status = 0;
             System.out.println(pdescription);
+            
+            // looping through the DNA database map
             data.forEach((tdescription, text) ->{
-                  foundAt = rabinKarp(pattern, text, d);
+                  foundAt = rabinKarp(pattern, text, primeno);          // getting the matched offset by calling the rabinKarp mrthod
                   if(foundAt != -1){
                       status = 1;
                       System.out.println("[" +tdescription + "]" + " at offset " + foundAt);
@@ -66,61 +61,57 @@ public class DSA_DNA_Pattern_matching {
             });
             
             if(status == 0){
-                System.out.println("NOT FOUND");
+                    System.out.println("NOT FOUND");
             }  
         });        
     }
     
     
-    static int rabinKarp(String p, String t, int q){ 
-        int m = p.length(); 
-        int n = t.length(); 
+    static int rabinKarp(String p, String t, int prime){ 
+        int m = p.length();         // length of the pattern
+        int n = t.length();         // length of the text
         int i, j;
-        int h = 1;               
-        int ph = 0;              // pattern hash value
-        int th = 0;              // text hash value 
+        int h = 1;              
+        int ph = 0;                 // hash value of the pattern
+        int th = 0;                 // hash value of the text 
          
-      
-        // The value of h would be "pow(d, M-1)%q"
+     
         i=0;
         while(i < m-1){
-            h = (h*d)%q;
+            h = (h*nalph)%prime;
             i++;
         }
       
-        // Calculate the hash value of pattern and first 
-        // window of text 
-        
+        // calculating the hash value of the pattern and th eparticular text portion
         i=0;
         while(i < m){
-            ph = (p.charAt(i) + d*ph)%q; 
-            th = (t.charAt(i) + d*th)%q;
+            ph = (p.charAt(i) + nalph*ph)%prime; 
+            th = (t.charAt(i) + nalph*th)%prime;
             i++;
         }
       
-        // Slide the pattern over text one by one 
-    
+      // looping through a particular portion of text and checking for a match
         i=0;
         while(i <= n - m){
-            if(ph == th){
+            if(ph == th){                  // checing if the to hash values are same
                 j = 0;
                 while(j < m){
-                    if (t.charAt(i+j) != p.charAt(j)){
+                    if (t.charAt(i+j) != p.charAt(j)){          // checking for a match
                         break;
                     }
                     j++;
                 }
                 
-                if(j == m){
-//                    System.out.println("Pattern found at index " + i);
+                if(j == m){                  // match found
                     return i;
                 }
             }
             
+            // finding tha hash value of the next text portin
             if (i < n-m){
-                th = (d*(th - t.charAt(i)*h) + t.charAt(i+m))%q;
+                th = (nalph*(th - t.charAt(i)*h) + t.charAt(i+m))%prime;
                 if (th < 0){
-                    th = (th + q);
+                    th = (th + prime);
                 }
             }
             
