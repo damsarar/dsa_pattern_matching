@@ -66,7 +66,7 @@ public class DSA_DNA_Pattern_matching {
         });        
     }
     
-    // matching function - Rabin Karp algorithm
+    // matching function - Rabin Karp algorithm 
     static int rabinKarp(String p, String t, int prime){ 
         int m = p.length();         // length of the pattern
         int n = t.length();         // length of the text
